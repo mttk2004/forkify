@@ -6,31 +6,31 @@
  *  "Family is where life begins and love never ends."
  */
 
-import { async } from 'regenerator-runtime';
+import { API_URL } from './config';
+import { getJSON } from './views/helper';
+
 
 export const state = {
     recipe: {},
 }
 
 export const loadRecipe = async function(id) {
-    const res = await fetch(`https://forkify-api.herokuapp.com/api/v2/recipes/${id}`);
-    const data = await res.json();
-    
-    console.log(data);
-    
-    if (!res.ok)
-        throw new Error(data.message)
-    
-    const {recipe} = data.data;
-    state.recipe = {
-        cookingTime: recipe.cooking_time,
-        id: recipe.id,
-        imageUrl: recipe.image_url,
-        ingredients: recipe.ingredients,
-        publisher: recipe.publisher,
-        servings: recipe.servings,
-        sourceUrl: recipe.source_url,
-        title: recipe.title
+    try {
+        const data = await getJSON(`${API_URL}/${id}`);
+        
+        const {recipe} = data.data;
+        state.recipe = {
+            cookingTime: recipe.cooking_time,
+            id: recipe.id,
+            imageUrl: recipe.image_url,
+            ingredients: recipe.ingredients,
+            publisher: recipe.publisher,
+            servings: recipe.servings,
+            sourceUrl: recipe.source_url,
+            title: recipe.title
+        }
+        console.log(state.recipe);
+    } catch (err) {
+        throw err;
     }
-    console.log(state.recipe);
 }
