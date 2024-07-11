@@ -595,7 +595,6 @@ var _recipeViewDefault = parcelHelpers.interopDefault(_recipeView);
 const controlRecipes = async function() {
     try {
         const id = window.location.hash.slice(1);
-        console.log(id);
         if (!id) return;
         (0, _recipeViewDefault.default).renderSpinner();
         // 1. Loading recipe
@@ -603,14 +602,13 @@ const controlRecipes = async function() {
         // 2. Rendering recipe
         (0, _recipeViewDefault.default).render(_model.state.recipe);
     } catch (err) {
-        alert(err);
+        (0, _recipeViewDefault.default).renderError();
     }
 };
-const events = [
-    "hashchange",
-    "load"
-];
-events.forEach((event)=>window.addEventListener(event, controlRecipes));
+const init = function() {
+    (0, _recipeViewDefault.default).addHandlerRender(controlRecipes);
+};
+init();
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","core-js/modules/web.immediate.js":"49tUX","regenerator-runtime/runtime":"dXNgZ","./model":"Y4A21","./views/recipeView":"l60JC"}],"gkKU3":[function(require,module,exports) {
 exports.interopDefault = function(a) {
@@ -2490,7 +2488,6 @@ const loadRecipe = async function(id) {
             sourceUrl: recipe.source_url,
             title: recipe.title
         };
-        console.log(state.recipe);
     } catch (err) {
         throw err;
     }
@@ -2538,7 +2535,7 @@ const getJSON = async function(url) {
         if (!res.ok) throw new Error(data.message);
         return data;
     } catch (err) {
-        alert(err);
+        throw err;
     }
 };
 
@@ -2557,6 +2554,8 @@ var _fractional = require("fractional");
 class RecipeView {
     #parentElement = document.querySelector(".recipe");
     #data;
+    #errorMessage = "No recipes found! Please try another one!";
+    #message = "";
     render(data) {
         this.#data = data;
         const markup = this.#generateMarkup();
@@ -2573,6 +2572,37 @@ class RecipeView {
           `;
         this.#parentElement.innerHTML = "";
         this.#parentElement.insertAdjacentHTML("afterbegin", html);
+    }
+    renderError(message = this.#errorMessage) {
+        const markup = `<div class="error">
+            <div>
+              <svg>
+                <use href="${(0, _iconsSvgDefault.default)}#icon-alert-triangle"></use>
+              </svg>
+            </div>
+            <p>${message}</p>
+          </div>`;
+        this.#clear();
+        this.#parentElement.insertAdjacentHTML("afterbegin", markup);
+    }
+    renderMessage(message = this.#message) {
+        const markup = `<div class="message">
+            <div>
+              <svg>
+                <use href="${(0, _iconsSvgDefault.default)}#icon-smile"></use>
+              </svg>
+            </div>
+            <p>${message}</p>
+          </div>`;
+        this.#clear();
+        this.#parentElement.insertAdjacentHTML("afterbegin", markup);
+    }
+    addHandlerRender(handler) {
+        const events = [
+            "hashchange",
+            "load"
+        ];
+        events.forEach((event)=>window.addEventListener(event, handler));
     }
     #clear() {
         this.#parentElement.innerHTML = "";

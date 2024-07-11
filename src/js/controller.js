@@ -11,7 +11,6 @@ import recipeView from './views/recipeView';
 const controlRecipes = async function() {
   try {
     const id = window.location.hash.slice(1);
-    console.log(id);
     if (!id) return;
     recipeView.renderSpinner();
     
@@ -21,9 +20,11 @@ const controlRecipes = async function() {
     // 2. Rendering recipe
     recipeView.render(model.state.recipe);
   } catch (err) {
-    alert(err)
+    recipeView.renderError();
   }
 }
 
-const events = ['hashchange', 'load']
-events.forEach(event => window.addEventListener(event, controlRecipes));
+const init = function() {
+  recipeView.addHandlerRender(controlRecipes)
+}
+init();
