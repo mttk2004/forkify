@@ -7,7 +7,7 @@
  */
 
 
-import { TIMEOUT_SEC } from '../config';
+import { TIMEOUT_SEC } from './config';
 
 
 const timeout = function (s) {
