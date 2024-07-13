@@ -1,6 +1,6 @@
 /*
  *  Project: starter
- *  File: view.js
+ *  File: View.js
  *  Created: 9:34 SA, 12/07/2024
  *  Author: Mai Tran Tuan Kiet
  *  "Family is where life begins and love never ends."

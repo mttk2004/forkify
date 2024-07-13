@@ -1,6 +1,6 @@
 /*
  *  Project: starter
- *  File: recipeView.js
+ *  File: RecipeView.js
  *  Created: 8:27 CH, 08/07/2024
  *  Author: Mai Tran Tuan Kiet
  *  "Family is where life begins and love never ends."
@@ -8,7 +8,7 @@
 
 import icons from '../../img/icons.svg';
 import { Fraction } from 'fractional'
-import View from './view';
+import View         from './View';
 
 
 class RecipeView extends View {

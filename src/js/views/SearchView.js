@@ -1,6 +1,6 @@
 /*
  *  Project: starter
- *  File: searchView.js
+ *  File: SearchView.js
  *  Created: 9:32 CH, 11/07/2024
  *  Author: Mai Tran Tuan Kiet
  *  "Family is where life begins and love never ends."

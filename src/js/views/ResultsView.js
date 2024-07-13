@@ -1,13 +1,12 @@
 /*
  *  Project: starter
- *  File: resultsView.js
+ *  File: ResultsView.js
  *  Created: 10:00 SA, 12/07/2024
  *  Author: Mai Tran Tuan Kiet
  *  "Family is where life begins and love never ends."
  */
 
-import View from './view';
-import icons from '../../img/icons.svg'
+import View  from './View';
 
 
 class ResultsView extends View {

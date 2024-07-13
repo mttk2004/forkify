@@ -588,12 +588,14 @@ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 var _webImmediateJs = require("core-js/modules/web.immediate.js");
 var _runtime = require("regenerator-runtime/runtime");
 var _model = require("./model");
-var _recipeView = require("./views/recipeView");
+var _recipeView = require("./views/RecipeView");
 var _recipeViewDefault = parcelHelpers.interopDefault(_recipeView);
-var _searchView = require("./views/searchView");
+var _searchView = require("./views/SearchView");
 var _searchViewDefault = parcelHelpers.interopDefault(_searchView);
-var _resultsView = require("./views/resultsView");
+var _resultsView = require("./views/ResultsView");
 var _resultsViewDefault = parcelHelpers.interopDefault(_resultsView);
+var _paginationView = require("./views/PaginationView");
+var _paginationViewDefault = parcelHelpers.interopDefault(_paginationView);
 const controlRecipes = async function() {
     try {
         const id = window.location.hash.slice(1);
@@ -609,23 +611,30 @@ const controlRecipes = async function() {
 };
 const controlSearchResults = async function() {
     try {
-        console.log("hi");
         const query = (0, _searchViewDefault.default).getQuery();
         if (!query) return;
         (0, _resultsViewDefault.default).renderSpinner();
         await (0, _model.loadSearchResults)(query);
-        (0, _resultsViewDefault.default).render(_model.state.search.results);
+        (0, _resultsViewDefault.default).render(_model.getSearchResultsPage());
+        (0, _paginationViewDefault.default).render(_model.state.search);
     } catch (err) {
         (0, _recipeViewDefault.default).renderError();
     }
 };
+const controlPagination = async function(gotoPage) {
+    // rendering new results
+    (0, _resultsViewDefault.default).render(_model.getSearchResultsPage(gotoPage));
+    // rendering new buttons
+    (0, _paginationViewDefault.default).render(_model.state.search);
+};
 const init = function() {
     (0, _recipeViewDefault.default).addHandlerRender(controlRecipes);
     (0, _searchViewDefault.default).addHandlerSearch(controlSearchResults);
+    (0, _paginationViewDefault.default).addHandlerClick(controlPagination);
 };
 init();
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","core-js/modules/web.immediate.js":"49tUX","regenerator-runtime/runtime":"dXNgZ","./model":"Y4A21","./views/recipeView":"l60JC","./views/searchView":"9OQAM","./views/resultsView":"cSbZE"}],"gkKU3":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","core-js/modules/web.immediate.js":"49tUX","regenerator-runtime/runtime":"dXNgZ","./model":"Y4A21","./views/RecipeView":"aFEMw","./views/SearchView":"c7Rpf","./views/ResultsView":"8JjiB","./views/PaginationView":"9Uw3J"}],"gkKU3":[function(require,module,exports) {
 exports.interopDefault = function(a) {
     return a && a.__esModule ? a : {
         default: a
@@ -2485,13 +2494,16 @@ parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "state", ()=>state);
 parcelHelpers.export(exports, "loadRecipe", ()=>loadRecipe);
 parcelHelpers.export(exports, "loadSearchResults", ()=>loadSearchResults);
+parcelHelpers.export(exports, "getSearchResultsPage", ()=>getSearchResultsPage);
 var _config = require("./config");
 var _helper = require("./helper");
 const state = {
     recipe: {},
     search: {
         query: "",
-        results: []
+        results: [],
+        page: 1,
+        resultsPerPage: (0, _config.RESULTS_PER_PAGE)
     }
 };
 const loadRecipe = async function(id) {
@@ -2528,6 +2540,12 @@ const loadSearchResults = async function(query) {
         throw err;
     }
 };
+const getSearchResultsPage = function(page = state.search.page) {
+    state.search.page = page;
+    const start = (page - 1) * state.search.resultsPerPage;
+    const end = page * state.search.resultsPerPage;
+    return state.search.results.slice(start, end);
+};
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./config":"k5Hzs","./helper":"lVRAz"}],"k5Hzs":[function(require,module,exports) {
 /*
@@ -2540,8 +2558,10 @@ const loadSearchResults = async function(query) {
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "API_URL", ()=>API_URL);
 parcelHelpers.export(exports, "TIMEOUT_SEC", ()=>TIMEOUT_SEC);
+parcelHelpers.export(exports, "RESULTS_PER_PAGE", ()=>RESULTS_PER_PAGE);
 const API_URL = "https://forkify-api.herokuapp.com/api/v2/recipes/";
 const TIMEOUT_SEC = 10;
+const RESULTS_PER_PAGE = 10;
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"lVRAz":[function(require,module,exports) {
 /*
@@ -2575,10 +2595,10 @@ const getJSON = async function(url) {
     }
 };
 
-},{"./config":"k5Hzs","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"l60JC":[function(require,module,exports) {
+},{"./config":"k5Hzs","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"aFEMw":[function(require,module,exports) {
 /*
  *  Project: starter
- *  File: recipeView.js
+ *  File: RecipeView.js
  *  Created: 8:27 CH, 08/07/2024
  *  Author: Mai Tran Tuan Kiet
  *  "Family is where life begins and love never ends."
@@ -2587,7 +2607,7 @@ parcelHelpers.defineInteropFlag(exports);
 var _iconsSvg = require("../../img/icons.svg");
 var _iconsSvgDefault = parcelHelpers.interopDefault(_iconsSvg);
 var _fractional = require("fractional");
-var _view = require("./view");
+var _view = require("./View");
 var _viewDefault = parcelHelpers.interopDefault(_view);
 class RecipeView extends (0, _viewDefault.default) {
     _parentElement = document.querySelector(".recipe");
@@ -2692,7 +2712,7 @@ class RecipeView extends (0, _viewDefault.default) {
 }
 exports.default = new RecipeView();
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","../../img/icons.svg":"cMpiy","fractional":"3SU56","./view":"bWlJ9"}],"cMpiy":[function(require,module,exports) {
+},{"../../img/icons.svg":"cMpiy","fractional":"3SU56","./View":"5cUXS","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"cMpiy":[function(require,module,exports) {
 module.exports = require("17cff2908589362b").getBundleURL("hWUTQ") + "icons.21bad73c.svg" + "?" + Date.now();
 
 },{"17cff2908589362b":"lgJ39"}],"lgJ39":[function(require,module,exports) {
@@ -2983,10 +3003,10 @@ Fraction.primeFactors = function(n) {
 };
 module.exports.Fraction = Fraction;
 
-},{}],"bWlJ9":[function(require,module,exports) {
+},{}],"5cUXS":[function(require,module,exports) {
 /*
  *  Project: starter
- *  File: view.js
+ *  File: View.js
  *  Created: 9:34 SA, 12/07/2024
  *  Author: Mai Tran Tuan Kiet
  *  "Family is where life begins and love never ends."
@@ -3044,10 +3064,10 @@ class View {
 }
 exports.default = View;
 
-},{"../../img/icons.svg":"cMpiy","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"9OQAM":[function(require,module,exports) {
+},{"../../img/icons.svg":"cMpiy","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"c7Rpf":[function(require,module,exports) {
 /*
  *  Project: starter
- *  File: searchView.js
+ *  File: SearchView.js
  *  Created: 9:32 CH, 11/07/2024
  *  Author: Mai Tran Tuan Kiet
  *  "Family is where life begins and love never ends."
@@ -3072,19 +3092,17 @@ class SearchView {
 }
 exports.default = new SearchView();
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"cSbZE":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"8JjiB":[function(require,module,exports) {
 /*
  *  Project: starter
- *  File: resultsView.js
+ *  File: ResultsView.js
  *  Created: 10:00 SA, 12/07/2024
  *  Author: Mai Tran Tuan Kiet
  *  "Family is where life begins and love never ends."
  */ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-var _view = require("./view");
+var _view = require("./View");
 var _viewDefault = parcelHelpers.interopDefault(_view);
-var _iconsSvg = require("../../img/icons.svg");
-var _iconsSvgDefault = parcelHelpers.interopDefault(_iconsSvg);
 class ResultsView extends (0, _viewDefault.default) {
     _parentElement = document.querySelector(".results");
     _errorMessage = "No recipes found! Please try another one!";
@@ -3108,6 +3126,65 @@ class ResultsView extends (0, _viewDefault.default) {
 }
 exports.default = new ResultsView();
 
-},{"./view":"bWlJ9","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","../../img/icons.svg":"cMpiy"}]},["hycaY","aenu9"], "aenu9", "parcelRequire3a11")
+},{"./View":"5cUXS","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"9Uw3J":[function(require,module,exports) {
+/*
+ *  Project: starter
+ *  File: PaginationView.js
+ *  Created: 2:09 CH, 12/07/2024
+ *  Author: Mai Tran Tuan Kiet
+ *  "Family is where life begins and love never ends."
+ */ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _iconsSvg = require("../../img/icons.svg");
+var _iconsSvgDefault = parcelHelpers.interopDefault(_iconsSvg);
+var _view = require("./View");
+var _viewDefault = parcelHelpers.interopDefault(_view);
+class PaginationView extends (0, _viewDefault.default) {
+    _parentElement = document.querySelector(".pagination");
+    _generateMarkup() {
+        const currentPage = this._data.page;
+        const numPages = Math.ceil(this._data.results.length / this._data.resultsPerPage);
+        // Only one page
+        if (numPages === 1 && currentPage === 1) return "";
+        // First page
+        if (numPages > 1 && currentPage === 1) return `<button data-goto="${currentPage + 1}" class="btn--inline pagination__btn--next">
+		            <span>${currentPage + 1}</span>
+		            <svg class="search__icon">
+		              <use href="${0, _iconsSvgDefault.default}#icon-arrow-right"></use>
+		            </svg>
+		          </button>`;
+        // Last page
+        if (numPages > 1 && currentPage === numPages) return `<button data-goto="${currentPage - 1}" class="btn--inline pagination__btn--prev">
+			          <svg class="search__icon">
+			            <use href="${0, _iconsSvgDefault.default}#icon-arrow-left"></use>
+			          </svg>
+			          <span>${currentPage - 1}</span>
+			        </button>`;
+        // Middle page
+        if (numPages > 1 && currentPage < numPages && currentPage > 1) return `<button data-goto="${currentPage - 1}" class="btn--inline pagination__btn--prev">
+			          <svg class="search__icon">
+			            <use href="${0, _iconsSvgDefault.default}#icon-arrow-left"></use>
+			          </svg>
+			          <span>${currentPage - 1}</span>
+			        </button>
+			        <button data-goto="${currentPage + 1}" class="btn--inline pagination__btn--next">
+		            <span>${currentPage + 1}</span>
+		            <svg class="search__icon">
+		              <use href="${0, _iconsSvgDefault.default}#icon-arrow-right"></use>
+		            </svg>
+		          </button>`;
+    }
+    addHandlerClick(handler) {
+        this._parentElement.addEventListener("click", function(e) {
+            const btn = e.target.closest(".btn--inline");
+            if (!btn) return;
+            const gotoPage = +btn.dataset.goto;
+            handler(gotoPage);
+        });
+    }
+}
+exports.default = new PaginationView();
+
+},{"../../img/icons.svg":"cMpiy","./View":"5cUXS","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["hycaY","aenu9"], "aenu9", "parcelRequire3a11")
 
 //# sourceMappingURL=index.e37f48ea.js.map
