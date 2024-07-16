@@ -7,8 +7,7 @@
  */
 
 import { API_URL, KEY, RESULTS_PER_PAGE } from './config';
-import { AJAX, getJSON, sendJSON }        from './helper';
-import { async }                          from 'regenerator-runtime';
+import { AJAX }                           from './helper';
 
 
 export const state = {
@@ -57,7 +56,7 @@ export const loadSearchResults = async function (query) {
 	try {
 		state.search.query = query;
 		
-		const data = await AJAX(`${API_URL}?search=${query}`);
+		const data = await AJAX(`${API_URL}?search=${query}&key=${KEY}`);
 		console.log(data);
 		
 		state.search.results = data.data.recipes.map(rec => {
@@ -134,20 +133,20 @@ init();
 export const uploadRecipe = async function (newRecipe) {
 	try {
 		const ingredients = Object.entries(newRecipe)
-		                          .filter(
-				                          entry => entry[0].startsWith('ingredient') && entry[1] !== '')
-		                          .map(([_, ing]) => {
-			                          const ingArr = ing.replaceAll(' ', '').split(',');
-			                          if (ingArr.length !== 3) throw new Error('Wrong ingredients'
-			                                                                   + ' format!');
+		                          .filter(entry => entry[0].startsWith('ingredient') && entry[1] !== '')
+		                          .map(ing => {
+			                          const ingArr = ing[1].split(',').map(el => el.trim());
+			                          // const ingArr = ing[1].replaceAll(' ', '').split(',');
+			                          if (ingArr.length !== 3)
+				                          throw new Error(
+						                          'Wrong ingredient fromat! Please use the correct format :)'
+				                          );
 			                          
 			                          const [quantity, unit, description] = ingArr;
-			                          return {
-				                          quantity: quantity ? +quantity : null,
-				                          unit,
-				                          description
-			                          };
+			                          
+			                          return { quantity: quantity ? +quantity : null, unit, description };
 		                          });
+		
 		const recipe = {
 			title       : newRecipe.title,
 			source_url  : newRecipe.sourceUrl,
@@ -157,14 +156,12 @@ export const uploadRecipe = async function (newRecipe) {
 			servings    : +newRecipe.servings,
 			ingredients,
 		};
-		console.log(recipe);
 		
-		const data = await sendJSON(`${API_URL}?key=${KEY}`, recipe);
-		console.log(data);
+		const data = await AJAX(`${API_URL}?key=${KEY}`, recipe);
 		state.recipe = createRecipeObject(data);
+		addBookmark(state.recipe);
 	}
 	catch (err) {
 		throw err;
 	}
 };
-

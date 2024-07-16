@@ -41,7 +41,8 @@ export default class View {
 			if (
 					!newEl.isEqualNode(curEl) &&
 					newEl.firstChild?.nodeValue.trim() !== ''
-			) {
+			)
+			{
 				// console.log('💥', newEl.firstChild.nodeValue.trim());
 				curEl.textContent = newEl.textContent;
 			}
@@ -70,6 +71,11 @@ export default class View {
 		this._parentElement.insertAdjacentHTML('afterbegin', markup);
 	}
 	
+	/**
+	 * Render the error message
+	 * @param {string} message The error message
+	 * @author Mai Tran Tuan Kiet
+	 */
 	renderError(message = this._errorMessage) {
 		const markup = `
       <div class="error">
